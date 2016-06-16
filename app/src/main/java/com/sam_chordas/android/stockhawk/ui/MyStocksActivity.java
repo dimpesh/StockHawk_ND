@@ -57,15 +57,16 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private Context mContext;
     private Cursor mCursor;
     boolean isConnected;
-    TextView offline_view;
+    TextView empty_view;
     String company_symbol;
+    RecyclerView recyclerView;
     //String fabDescription="Add More Stock Value";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
-        offline_view = (TextView) findViewById(R.id.offline_message);
+        empty_view = (TextView) findViewById(R.id.empty_view);
         ConnectivityManager cm =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -85,9 +86,33 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 networkToast();
             }
         }
-        final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+
+        // code for offline
+
+//        try {
+//            if (mCursorAdapter.getItemCount() == 0 && !isConnected) {
+//                empty_view.setVisibility(View.VISIBLE);
+//                recyclerView.setVisibility(View.GONE);
+//            }
+//            else
+//            {
+//                empty_view.setVisibility(View.GONE);
+//                recyclerView.setVisibility(View.VISIBLE);
+//
+//            }
+//        }
+//        catch (NullPointerException e)
+//        {
+//            Log.v("VERBOSE : ",e.getMessage());
+//
+//        }
+
+
+
+        /// uptil here
 
         mCursorAdapter = new QuoteCursorAdapter(this, null);
         recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
@@ -96,13 +121,15 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                     public void onItemClick(View v, int position) {
 //                        Toast.makeText(getApplicationContext(), R.string.content_graph, Toast.LENGTH_SHORT).show();
                     company_symbol=((TextView)v.findViewById(R.id.stock_symbol)).getText().toString();
-                        Log.v("COMPANY : ",company_symbol );
+                        Log.v("COMPANY : ",company_symbol);
                         Intent intent=new Intent(getApplicationContext(),GraphDisplayActivity.class);
                         intent.putExtra("company",company_symbol);
                         startActivity(intent);
                     }
                 }));
         recyclerView.setAdapter(mCursorAdapter);
+
+        updateEmptyView();
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -131,7 +158,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                         toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                                         toast.show();
                                         return;
-                                    } else {
+                                    }
+//                                    else if(c.getCount()<=0)
+//                                    {
+//                                        Toast.makeText(getApplicationContext(),"Not available",Toast.LENGTH_SHORT).show();
+//                                    }
+                                    else {
                                         // Add the stock to DB
                                         mServiceIntent.putExtra("tag", "add");
                                         mServiceIntent.putExtra("symbol", input.toString());
@@ -173,6 +205,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         }
 
         // refreshing layouts
+//        reloadLayout();
 
     }
 
@@ -181,6 +214,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+        updateEmptyView();
     }
 
     public void networkToast() {
@@ -237,11 +271,15 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mCursorAdapter.swapCursor(data);
         mCursor = data;
+        updateEmptyView();
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mCursorAdapter.swapCursor(null);
+
+
+        updateEmptyView();
     }
 
 
@@ -253,19 +291,63 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 //        return
 //
 //    }
-//  public void reloadLayout()
-//  {
-//    if(!isConnected)
-//    {
-//        if(mCursorAdapter.getItemCount()==0)
-//        {
-//            offline_view.setText(R.string.no_connection_available);
-//            offline_view.setVisibility(View.VISIBLE);
-//        }
-//        else
-//        {
-//            offline_view.setVisibility(View.GONE);
-//        }
-//    }
+//  public void reloadLayout() {
+//      if (!isConnected) {
+//          if (mCursorAdapter.getItemCount() == -1) {
+//              empty_view.setText("no valid data");
+//              empty_view.setVisibility(View.VISIBLE);
+//          } else {
+//              empty_view.setVisibility(View.GONE);
+//          }
+//      }
+//  }
+
+    /**
+     * Returns true if the network is available or about to become available.
+     *
+     * @param c Context used to get the ConnectivityManager
+     * @return
+     */
+    static public boolean isNetworkAvailable(Context c) {
+        ConnectivityManager cm =
+                (ConnectivityManager)c.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+    }
+
+
+    /*
+        Updates the empty list view with contextually relevant information that the user can
+        use to determine why they aren't seeing weather.
+     */
+    private void updateEmptyView() {
+        TextView tv = (TextView)findViewById(R.id.empty_view);
+
+        if (!isConnected ) {
+                int message = R.string.empty_list;
+                tv.setText(message);
+
+            recyclerView.setVisibility(View.INVISIBLE);
+            tv.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            recyclerView.setVisibility(View.VISIBLE);
+            tv.setVisibility(View.INVISIBLE);
+            try
+            {
+                int index=mCursor.getColumnIndex(QuoteColumns.SYMBOL);
+                Log.v("Index Value :" ,index+"");
+
+            }
+            catch(NullPointerException e)
+            {
+
+            }
+
+        }
+    }
 
 }

@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.RemoteException;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.GcmTaskService;
 import com.google.android.gms.gcm.TaskParams;
@@ -128,10 +130,15 @@ public class StockTaskService extends GcmTaskService{
         }
       } catch (IOException e){
         e.printStackTrace();
+      }catch (NumberFormatException e)
+      {
+        Log.v("NumberFormat Generated","Number Format in StockTaskService");
       }
-    }
 
+    }
+    Log.v("Result Failure :",result+"");
     return result;
+
   }
 
 }
