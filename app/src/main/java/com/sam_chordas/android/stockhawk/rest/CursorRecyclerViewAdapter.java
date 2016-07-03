@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.support.v7.widget.RecyclerView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -37,7 +38,10 @@ public abstract class CursorRecyclerViewAdapter <VH extends RecyclerView.ViewHol
     if (dataIsValid && mCursor != null){
       return mCursor.getCount();
     }
-    return 0;
+    else
+    {
+      return -1;
+    }
   }
 
   @Override public long getItemId(int position) {
