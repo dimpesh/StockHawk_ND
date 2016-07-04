@@ -18,4 +18,5 @@
   <string name="empty_list">Data Connection Not Available.Please Try Later</string>
   <string name="emptyViewStr">No Data Available</string>
   <string name="empty_stock_list">Data Not Available</string>
+  <string name="already_saved">This stock is already saved!</string>
 </resources>
